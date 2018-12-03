@@ -1,0 +1,44 @@
+version: '3.6'
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - ./logs/nginx:/var/log/nginx
+      - ./wordpress:/var/www/html
+      - ./certs:/etc/letsencrypt
+      - ./certs-data:/data/letsencrypt
+    links:
+      - wordpress
+    restart: always
+
+  mysql:
+    image: mariadb
+    container_name: mysql
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=RootPassword
+      - MYSQL_USER=username
+      - MYSQL_PASSWORD=UserPassword
+    restart: always
+
+  wordpress:
+    image: fernandodumont/wordpress:7.2-fpm-soap
+    container_name: wordpress
+    volumes:
+      - ./wordpress:/var/www/html
+      - ./other/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    environment:
+      - WORDPRESS_DB_NAME=wordpress
+      - WORDPRESS_TABLE_PREFIX=wp_
+      - WORDPRESS_DB_HOST=mysql
+      - WORDPRESS_DB_USER=username
+      - WORDPRESS_DB_PASSWORD=UserPassword
+    links:
+      - mysql
+    restart: always
